@@ -1,0 +1,35 @@
+<configuration>
+
+    <!--    https://docs.spring.io/spring-boot/docs/2.1.13.RELEASE/reference/html/howto-logging.html-->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}/}spring.log}"/>
+    <include resource="org/springframework/boot/logging/logback/file-appender.xml"/>
+
+
+    <appender name="GELF" class="de.siegmar.logbackgelf.GelfUdpAppender">
+        <graylogHost>glog.farabixo.tech</graylogHost>
+        <graylogPort>5801</graylogPort>
+        <encoder class="de.siegmar.logbackgelf.GelfEncoder">
+            <staticField>app_name:PortfolioAPIService</staticField>
+            <staticField>os_arch:${os.arch}</staticField>
+            <staticField>os_name:${os.name}</staticField>
+            <staticField>os_version:${os.version}</staticField>
+        </encoder>
+    </appender>
+
+    <!-- Use AsyncAppender to prevent slowdowns -->
+    <appender name="ASYNC GELF" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="GELF"/>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+    <!-- Log everything at INFO level to the console and the file -->
+    <root level="info">
+        <appender-ref ref="ASYNC GELF"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
